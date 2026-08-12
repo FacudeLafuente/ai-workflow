@@ -1,0 +1,223 @@
+<!--
+=============================================================================
+ ASDD — Frontend AGENTS.md template
+=============================================================================
+ This template is one of two profile-specific starting points for the
+ consumer's `AGENTS.md`. It is derived from and kept in sync with the
+ canonical base at `asdd/ai-workflow/AGENTS.md`, which defines:
+   - The 9-section canonical structure (Project Overview → What NOT to Do).
+   - The shared rules every ASDD-compatible AGENTS.md must enforce
+     (no-commands, root-cause, ticket format, SSOT, delivery discipline).
+   - The required ASDD frontmatter (asdd_profile, base_branch, ticketing).
+
+ If you edit a **shared** rule (e.g. the ticket format reminder, the
+ no-commands rule), edit `asdd/ai-workflow/AGENTS.md` first and mirror the
+ change here AND in `AGENTS.md.be.example`. Do NOT duplicate rules that
+ already live in `asdd/ai-workflow/ASDD.md` or in a skill — link instead.
+
+ Copy this file to the root of your consumer repo as `AGENTS.md` and edit
+ it to match your stack. It is pre-filled with a realistic Vue 3 + Vite +
+ Pinia + TanStack Query starting point so a Frontend agent has a working
+ baseline from day one; swap the pieces that do not match (React, Angular,
+ Svelte, SolidJS, Astro, mobile — the shape of the sections stays the
+ same).
+
+ Sections marked with `<PLACEHOLDER>` MUST be filled in.
+ Sections with concrete examples (paths, package names, versions) SHOULD be
+ adapted to your repo — keep the same structure and level of detail.
+=============================================================================
+-->
+---
+# ASDD frontmatter — read by `asdd/ai-workflow/` skills.
+# Do NOT remove; edit to match your setup.
+
+asdd_profile: fe
+
+# Base branch used by pr-handoff (fallback: development).
+base_branch: development
+
+# Ticketing system used by ticket-author and pr-handoff.
+ticketing:
+  system: azure-devops       # or: github-issues, jira, linear, gitlab
+  ticket_id_pattern: "#<NUMBER>"   # examples: "#1234", "PROJ-1234", "GH-1234"
+---
+
+# AGENTS.md
+
+Shared baseline instructions for AI coding agents working on the
+**<Project name>** repository. Keep this file lean.
+
+## Project Overview
+
+<Describe what this project is in 3–5 lines: the main product, the primary
+users, the runtime target, and the top 3 tools anyone touching the codebase
+must be aware of.>
+
+Example baseline (edit to match your project):
+
+> `<Project name>` is a **Vue 3 + Vite + TypeScript** single-page application
+> for <domain>. It consumes the `<Project name>` backend over HTTPS,
+> authenticates against Azure AD via **MSAL**, and renders UIs on top of the
+> **<component library>** and **<data-grid library>**.
+
+## Project Layout — Non-Obvious Bits
+
+<Explain the parts of the codebase that are impossible to guess by browsing
+the tree. Examples: module-first vs feature-first, layering rules, canonical
+folder for shared code, aliases / path mappings that ESLint or the compiler
+enforce, root-level `main` files that bootstrap the app.>
+
+- **Module-first architecture under `src/modules/<ModuleName>/`.** Each
+  module owns its own `components/`, `composables/`, `models/`, `providers/`,
+  `repositories/`, `stores/`, `utils/`, `views/`, plus a `routes.ts`,
+  `types.ts` and `constants.ts`. Cross-module imports go through the module's
+  public surface, not deep into its internals.
+- **Two repository tiers:** app-wide repositories live in `src/repositories/`
+  (configuration, environment, users, …); module-scoped repositories live in
+  `src/modules/<Module>/repositories/`. Both expose `use*Repository()`
+  composables.
+- **All HTTP must go through `src/composables/api/useHttpClient.ts`.** It
+  wires the Axios (or fetch) instance with the MSAL bearer token, 401
+  auto-retry once, and the typed error pipeline. Components and stores
+  **never** call `axios` / `fetch` directly.
+- **TanStack Vue Query** (`@tanstack/vue-query`) is the data layer:
+  repositories return `useQuery` / `useMutation` objects (e.g.
+  `useGetRosters`, `useGetConfiguration`). Cache keys are arrays prefixed by
+  domain (`['rosters']`, `['managers', rosterId, query]`).
+- **Path alias `@/`** maps to `src/`. ESLint forbids relative parent imports
+  (`../*`) — always use `@/`.
+- **Layout is a route, not a wrapper.** The single `MainLayout` is the root
+  route's component; all module routes are its children.
+- **Auth bootstrap gate.** The router awaits `whenAuthBootstrapDone`
+  (`src/auth/bootstrapGate.ts`) before any navigation;
+  `markAuthBootstrapDone()` is called from MSAL setup. Don't navigate before
+  bootstrap.
+
+## Domain Core
+
+Three concepts that cannot be inferred from the code alone (edit to match
+your domain):
+
+- **<Term>** — <one-line definition>.
+- **<Term>** — <one-line definition>.
+- **<Term>** — <one-line definition>.
+
+Backend API shape is `<{ success, data, message } | envelope of your choice>`.
+Repositories typically read `response.data` and (when appropriate) hydrate
+with a domain class.
+
+## Tooling
+
+- **Context7 MCP** — use it for any library, framework, SDK, or API
+  documentation, setup, configuration, or CLI usage. Don't wait to be asked.
+  If Context7 MCP is not available in the current session, tell the user
+  before falling back to other sources.
+
+## Basic Project Commands
+
+```bash
+npm install                                # install deps (Node version is fixed — do not bump)
+npm run dev                                # Vite dev server (default API mode)
+npm run dev:local                          # VITE_API_MODE=local
+npm run dev:remote                         # VITE_API_MODE=remote
+npm run build                              # type-check + production build
+npm run type-check                         # vue-tsc only
+npm run test                               # vitest --run (full suite)
+npm run test:watch                         # vitest watch mode
+npm run test:coverage                      # vitest coverage + open report
+npm run lint:check                         # ESLint, no fixes
+npm run lint:fix                           # ESLint with --fix
+npm run format                             # Prettier write on src/
+```
+
+Runtime configuration is loaded from `<config source>` at boot
+(e.g. `public/config.json` fetched by `src/utils/config.ts`) — `API_URL`,
+MSAL `CLIENT_ID` / `TENANT_ID` / `BACKEND_CLIENT_ID`, base path, App Insights.
+The CI variant lives at `public/config.ci.json`. Do not hard-code these
+values in source.
+
+## Testing
+
+- **Vitest 3** with **jsdom** is the runner. Test files live next to the
+  code in `__tests__/` folders (matched by the ESLint Vitest config).
+- **Render through the test harness, not bare `render()`.** Use
+  `renderWithProviders` from `src/test-utils/render.ts` — it wires Pinia,
+  Vue Query (with retry off + Infinity cache), `vue-router-mock`, and the
+  `ApToast` / `ApModal` / `ErrorProvider` providers needed by the app.
+  Custom stubs for those providers will diverge from production behavior.
+- For repository / composable tests, mock `useHttpClient` rather than
+  `axios` so the auth + error pipeline contract stays explicit.
+
+## Code Conventions
+
+- **Composition API only** in new code. Use `<script setup lang="ts">` for
+  SFCs. Options API additions, `Vue.set`, and Vue 2 filters are not allowed.
+- **Define-macros order** is enforced by ESLint: `defineProps` → `defineEmits`
+  → `defineModel`. Props and emits must use the type-based declaration.
+- **Import order** is enforced (`builtin → external → internal → parent →
+  sibling → index`, newline between groups, alphabetized). `vue` first
+  within `external`, then `@<org>/*`, then `eslint/*`; `@/**` is `internal`.
+- **State:** app-wide state lives in **Pinia** stores (`src/stores/` —
+  `auth`, `errorStore`, `featureFlags` — and per-module `stores/`). Don't
+  store app state in module-scoped `let` / `ref` outside a Pinia store.
+- **Errors:** throw the typed errors from `src/models/api-errors`
+  (`BadRequest`, `Forbidden`, `NotFound`, `Timeout`, `Unauthorized`,
+  `NetworkError`, `Unknown`). The default error UX is the global
+  `ErrorProvider` + `errorStore` modal; opt a request out with `axios`
+  config `skipErrorModal: true` only when the caller handles the error
+  inline.
+- **Routes:** each module exposes a `routes.ts` array merged into the router
+  by `src/router/index.ts`. Use route `meta` for `pageTitle`, `featureFlag`
+  (key of `featureFlags` store), and `requiredAccessLevels` (array of
+  `AccessLevel`). The `mainGuard` enforces both — don't bypass it.
+- **Code splitting:** route components are loaded with dynamic `import()`
+  (see any module's `routes.ts`). Keep new routes the same way.
+- **Prettier** is the formatter: single quotes, semicolons, 2 spaces,
+  trailing comma `es5`, print width **140**, one attribute per line. Run
+  `npm run format` before committing.
+- **Comments:** the agent honors the minimal-comments rule
+  ([`asdd/ai-workflow/AGENTS.md` → Rule #6](../asdd/ai-workflow/AGENTS.md)).
+  Inline comments only when genuinely necessary; file-header of ≤3 lines
+  is the only agent-initiated comment allowed.
+
+## Commit & PR Conventions
+
+- Commit messages are checked in CI (e.g. by `scripts/commit-check.sh`).
+  Each commit in the PR must match:
+
+  ```text
+  <type>(<scope>): <lowercase description> #<TICKET-ID>
+  ```
+
+  - **Allowed types:** `feat | fix | docs | style | refactor | test | chore
+    | perf | ci | build | revert`.
+  - Description starts **lowercase** after the colon.
+  - Message **must end with `#<TICKET-ID>`** (e.g. `#1234`).
+- **Base branch:** `development` (or per `base_branch` in the frontmatter).
+- **Branch name convention:** `feature/<TICKET-ID>-<short-slug>` (or
+  `fix/…`, `chore/…`).
+- **One ticket → one focused PR.**
+
+## What NOT to Do
+
+- **Do not bump the Node.js version.** This is an explicit project rule.
+- **Do not call `axios` / `fetch` directly.** Always go through
+  `useHttpClient` so MSAL token injection, 401 retry, and the error pipeline
+  run.
+- **Do not import with relative parent paths (`../`)** — ESLint blocks it.
+  Use `@/`.
+- **Do not introduce Options API, `Vue.set`, or Vue 2 filters** in new code.
+- **Do not bypass `mainGuard`** by removing `meta.featureFlag` /
+  `meta.requiredAccessLevels` to land a feature; gate it properly or
+  escalate.
+- **Do not store app state outside Pinia** (no module-level mutable
+  singletons for shared state).
+- **Do not add inline comments** to generated code except when genuinely
+  necessary, when they carry important non-obvious context, or when the
+  user explicitly asked. Only a **file-header block of at most 3 lines**
+  may be added on the agent's initiative. See
+  [`asdd/ai-workflow/AGENTS.md` → Rule #6](../asdd/ai-workflow/AGENTS.md)
+  for the full rule; do not restate it here.
+- **Do not run `git push --force` on shared branches** and **do not commit
+  with `--no-verify`**.
+- **Do not skip the commit message format** — CI will reject the PR.

@@ -1,0 +1,60 @@
+# ai-workflow / ASDD — optional configuration
+#
+# Copy to `asdd/config.yml` if you need overrides. This file is only
+# required for monorepos with mixed FE + BE stacks, or when you want to pin
+# workflow parameters without editing AGENTS.md frontmatter.
+#
+# Precedence for profile selection:
+#   1) frontmatter `asdd_profile:` in AGENTS.md
+#   2) this file's `profile:` field
+#   3) autodetection by repo-viability-scan
+#
+# Comments explain each field; delete what you do not need.
+
+# --- Active profile -----------------------------------------------------------
+#
+# One of: fe (Frontend), be (Backend).
+# Omit to let repo-viability-scan autodetect.
+profile: fe
+
+# --- Monorepo per-package profiles -------------------------------------------
+#
+# If the repo is a monorepo, list each package with its own profile. When a
+# feature touches one package, ASDD uses that package's profile. When it spans
+# multiple packages, the agent halts and asks the human which profile to run.
+#
+# packages:
+#   - path: apps/web
+#     profile: fe
+#   - path: apps/api
+#     profile: be
+#   - path: packages/shared
+#     profile: be   # or fe, depending on where the code lives
+
+# --- Loop parameters ---------------------------------------------------------
+loop:
+  max_iterations: 5          # hard budget cap for draft → review → fix cycles
+  reviewer_is_fresh_subagent: true   # required; do not disable
+
+# --- Base branch override ----------------------------------------------------
+#
+# If your repo does not use `development`, override here. ASDD reads this in
+# pr-handoff. Falls back to `AGENTS.md` (`base_branch:` field) then to
+# `development`.
+# base_branch: main
+
+# --- Ticket ID prefix pattern ------------------------------------------------
+#
+# ASDD embeds the ticket ID in branch names and commit messages. Configure
+# your ticketing system's ID format if it is not the default `#<NUMBER>`.
+#
+# ticket_id:
+#   pattern: "#<NUMBER>"     # examples: "#1234", "PROJ-1234", "GH-1234"
+
+# --- Skill overrides (advanced) ----------------------------------------------
+#
+# Point specific skills at forked/customized files. The core rubric of each
+# skill stays enforced; only the file the agent reads changes.
+#
+# skills:
+#   spec-intake: asdd/overrides/spec-intake.md

@@ -1,0 +1,261 @@
+<!--
+=============================================================================
+ ASDD — Backend AGENTS.md template
+=============================================================================
+ This template is one of two profile-specific starting points for the
+ consumer's `AGENTS.md`. It is derived from and kept in sync with the
+ canonical base at `asdd/ai-workflow/AGENTS.md`, which defines:
+   - The 9-section canonical structure (Project Overview → What NOT to Do).
+   - The shared rules every ASDD-compatible AGENTS.md must enforce
+     (no-commands, root-cause, ticket format, SSOT, delivery discipline).
+   - The required ASDD frontmatter (asdd_profile, base_branch, ticketing).
+
+ If you edit a **shared** rule (e.g. the ticket format reminder, the
+ no-commands rule), edit `asdd/ai-workflow/AGENTS.md` first and mirror the
+ change here AND in `AGENTS.md.fe.example`. Do NOT duplicate rules that
+ already live in `asdd/ai-workflow/ASDD.md` or in a skill — link instead.
+
+ Copy this file to the root of your consumer repo as `AGENTS.md` and edit
+ it to match your stack. It is pre-filled with a realistic C# / .NET 10 +
+ EF Core + Azure AD starting point so a Backend agent has a working
+ baseline from day one; swap the pieces that do not match (Java + Spring,
+ Node + NestJS, Python + FastAPI, Go, Rust — the shape of the sections
+ stays the same).
+
+ Sections marked with `<PLACEHOLDER>` MUST be filled in.
+ Sections with concrete examples (paths, package names, versions) SHOULD be
+ adapted to your repo — keep the same structure and level of detail.
+=============================================================================
+-->
+---
+# ASDD frontmatter — read by `asdd/ai-workflow/` skills.
+# Do NOT remove; edit to match your setup.
+
+asdd_profile: be
+
+# Base branch used by pr-handoff (fallback: development).
+base_branch: development
+
+# Ticketing system used by ticket-author and pr-handoff.
+ticketing:
+  system: azure-devops       # or: github-issues, jira, linear, gitlab
+  ticket_id_pattern: "#<NUMBER>"   # examples: "#1234", "PROJ-1234", "GH-1234"
+---
+
+# AGENTS.md
+
+Shared baseline instructions for AI coding agents working on the
+**<Project name>** repository. Keep this file lean.
+
+## Project Overview
+
+<Describe what this project is in 3–5 lines: the main product, the primary
+consumers (FE app, integrations), the runtime target, the top 3 tools
+anyone touching the codebase must be aware of.>
+
+Example baseline (edit to match your project):
+
+> `<Project name>` is a **C# / .NET 10** REST API for <domain>. It exposes
+> the <domain> to the `<Project name>` frontend and to internal integrations,
+> using **EF Core** on SQL Server, **Azure AD** authentication
+> (`Microsoft.Identity.Web` in dev, EasyAuth in prod), and Azure DevOps for
+> CI/CD.
+
+## Project Layout — Non-Obvious Bits
+
+- **Solution:** `<Project>/<Project>.sln` — three projects:
+  - `<Project>` (Web / API host).
+  - `<Project>.Core` (Domain + Services + Interfaces + Core DTOs).
+  - `<Project>.DAL` (EF Core context + Repositories).
+- **Layering (strict):** Controller (Web) → Service (`Core/Services`,
+  registered via `ServicesInitializer`) → Repository (`DAL/Repositories`,
+  registered via `RepositoriesInitializer`) → EF Core `<Name>DbContext`.
+  No DB calls from controllers. No business logic in controllers.
+- **DTO placement:** Web DTOs in `<Project>/DTOs/Requests` and
+  `<Project>/DTOs/Responses`; Core DTOs in `<Project>.Core/DTOs`. Never leak
+  an entity through the HTTP boundary.
+- **Mapping:** AutoMapper via `<Project>/Mapper/ApiProfile.cs` (Web ↔ Core).
+- **URL segments in kebab-case**, enforced by
+  `<Project>/Utils/KebabCaseParameterTransformer.cs`.
+- **API docs:** Swagger / Swashbuckle at `/swagger` (`AddSwaggerGen` in
+  `Program.cs`).
+
+## Domain Core
+
+Three concepts that cannot be inferred from the code alone (edit to match
+your domain):
+
+- **<Term>** — <one-line definition>.
+- **<Term>** — <one-line definition>.
+- **<Term>** — <one-line definition>.
+
+## Tooling
+
+- **Language / runtime:** C# on **.NET 10**
+  (`<TargetFramework>net10.0</TargetFramework>`), `Nullable enable`,
+  `ImplicitUsings enable`.
+- **Persistence:** EF Core 10 on SQL Server
+  (`Microsoft.Data.SqlClient`); single `DbContext`
+  (`<Project>.DAL/Data/<Name>DbContext.cs`); `dotnet-ef` 10.0.9.
+- **Auth (dev):** JWT Bearer via `Microsoft.Identity.Web` / Azure AD (see
+  `Program.cs`, `AzureAd` config section).
+- **Auth (prod):** EasyAuth (Azure App Service Authentication) via
+  `<Project>/Auth/EasyAuthHandler.cs` +
+  `<Project>/Auth/EasyAuthMiddleware.cs`.
+- **Claims:** `<Project>/Auth/AzureAdClaimsTransformation.cs`, helpers in
+  `<Project>/Auth/ClaimsExtensions.cs`, `<Project>/Auth/CurrentUser.cs`.
+- **Authorization policies:** declared in `<Project>/Auth/Policies/*`
+  (`AdminPolicies`, `AccessLevelPolicies`, `EnvironmentPolicies`, …),
+  central names in `<Project>/Auth/Policies/PolicyNames.cs`.
+  **Every endpoint must carry an `[Authorize(Policy = PolicyNames.X)]`
+  unless it is genuinely public.**
+- **Context7 MCP** — use it for any library, framework, SDK, or API
+  documentation, setup, configuration, or CLI usage. Don't wait to be asked.
+
+## Basic Project Commands
+
+```bash
+dotnet restore
+dotnet build ./<Project>/<Project>.sln -c Release
+dotnet test  ./<Project>/<Project>.sln -s ./<Project>/<Project>.Tests/test.runsettings
+
+# Schema changes (only when the migrations flow is confirmed for the ticket)
+dotnet ef migrations add <Name> --project <Project>.DAL --startup-project <Project>
+```
+
+Runtime configuration source: `appsettings.json`,
+`appsettings.Development.example.json` (template),
+`appsettings.Production.json`. `appsettings.Development.json` is
+git-ignored.
+
+## Testing
+
+- **xUnit** + Moq + `Moq.AutoMock` + FluentAssertions + AutoFixture +
+  coverlet.
+- Projects under `<Project>.Tests/` (`Core.Tests`, `DAL.Tests`,
+  `Backend.Tests`). Some DAL tests hit a real SQL Server via
+  `test.runsettings` env vars (e.g. `<PROJECT>_TEST_CONNECTION_STRING`).
+- **Layer isolation.** Service tests mock the repository interface; do not
+  spin up the DbContext.
+- **`[ProducesResponseType]`** attributes must match the tested status
+  codes; controller tests cross-check that mapping.
+
+## Code Conventions
+
+### Layering & DTO placement
+
+- **Layering discipline:** Controller → Service → Repository (or the repo's
+  variant). No cross-layer leaks. No DB calls from controllers. No business
+  logic in controllers.
+- **DTO placement:** Web DTOs in the Web project's `DTOs/{Requests,Responses}`;
+  Core DTOs in the Core project's `DTOs`. Never leak an entity through the
+  HTTP boundary.
+- **Mapping:** additions to the AutoMapper `ApiProfile` (or the declared
+  mapping profile), not ad-hoc mapping in controllers.
+- **Auth:** never propose an endpoint without an
+  `[Authorize(Policy = PolicyNames.X)]` unless the ticket explicitly
+  justifies it as public.
+
+### API conventions (routing, response types, idempotency)
+
+- **REST** with `[ApiController]` + `[Route("api/...")]`.
+- **URL segments in kebab-case**, enforced by
+  `<Project>/Utils/KebabCaseParameterTransformer.cs`.
+- **Kebab-case routing** — action names respect the declared style; only
+  flag if a custom `[HttpXxx("literal-name")]` breaks the pattern.
+- **Status codes** documented per action via `[ProducesResponseType(...)]`;
+  200 / 201 / 204 on success paths.
+- **`[ProducesResponseType]`** — every documented status code must be
+  declared.
+- **Idempotency** — no repo-wide convention. Idempotency rules must be
+  declared per endpoint in the ticket's `Contracts & Specs`.
+
+### Error envelope (uniform)
+
+Errors flow through `<Project>/Handlers/GlobalExceptionHandler.cs`:
+
+```jsonc
+{
+  "message": "<ERROR_CODE_OR_TEXT>",
+  "statusCode": 400,
+  "isHandled": true,
+  "errors": null
+}
+```
+
+Mapping:
+
+| Status | Exception type                                                          |
+|--------|-------------------------------------------------------------------------|
+| 400    | `ValidationException`, `ArgumentException`, `InvalidOperationException` |
+| 401    | `UnauthorizedAccessException`                                           |
+| 403    | `Forbidden*` exceptions                                                 |
+| 404    | `NotFoundException`                                                     |
+| 409    | domain-specific conflict exceptions                                     |
+| 422    | `ConfigurationValidationException` (fills `errors`)                     |
+| 500    | anything else                                                           |
+
+**Do not** return bespoke error shapes from a controller. Throw the typed
+exception; the handler applies the envelope.
+
+### Persistence & migrations
+
+- Single `<Name>DbContext` in `<Project>.DAL/Data/`.
+- Entities in `<Project>.Core/Entities/`.
+- **Migrations:** if the DAL does not currently ship a `Migrations/`
+  folder, the schema-change flow is an **open convention**. Until it is
+  decided, `asdd/ai-workflow/skills/repo-viability-scan.md` treats any schema
+  change as `RED` and escalates.
+
+### Style
+
+- **Lint / format:** only compiler + nullable warnings today; no additional
+  analyzer / editorconfig detected. Do **not** suppress warnings to make a
+  build green.
+- **Comments:** the agent honors the minimal-comments rule
+  ([`asdd/ai-workflow/AGENTS.md` → Rule #6](../asdd/ai-workflow/AGENTS.md)).
+  Inline comments only when genuinely necessary; file-header of ≤3 lines
+  is the only agent-initiated comment allowed.
+
+## Commit & PR Conventions
+
+- **Base branch:** `development` (or per `base_branch` in the frontmatter).
+- **Branch prefixes:** `feature/*`, `fix/*`, `chore/*`.
+- **Commit format** — Conventional Commits with the ticket ID at the end:
+
+  ```text
+  <type>(<scope>): <imperative summary> (#<TICKET-ID>)
+  ```
+
+  - **Allowed types:** `feat | fix | docs | style | refactor | test |
+    chore | perf | ci | build | revert`.
+  - Description is imperative and short.
+  - Message references the ticket ID (e.g. `(#1234)`).
+- **One ticket → one focused PR.**
+- **PR must trigger** the repo's PR checks (e.g.
+  `.pipelines/pr-checks/build-check.yml`).
+- **No `--force` on shared branches.**
+- **No `--no-verify`.**
+
+## What NOT to Do
+
+- **Do not bump the language / runtime version** without an explicit ticket.
+- **Do not add ad-hoc error shapes** — throw the typed exception; let the
+  global handler apply the envelope.
+- **Do not add DB calls in controllers** — go through a service.
+- **Do not leak an entity through a controller** — map to a DTO.
+- **Do not skip `[Authorize(Policy = PolicyNames.X)]`** unless the endpoint
+  is genuinely public and justified.
+- **Do not skip `[ProducesResponseType]`** for documented status codes.
+- **Do not add inline comments** to generated code except when genuinely
+  necessary, when they carry important non-obvious context, or when the
+  user explicitly asked. Only a **file-header block of at most 3 lines**
+  may be added on the agent's initiative. See
+  [`asdd/ai-workflow/AGENTS.md` → Rule #6](../asdd/ai-workflow/AGENTS.md)
+  for the full rule; do not restate it here.
+- **Do not add a migration without a confirmed migrations flow** —
+  escalate.
+- **Do not suppress warnings, delete tests, or narrow scope** to make a
+  build green.
+- **Do not push directly to the base branch** or force-push shared branches.
+- **Do not commit with `--no-verify`.**

@@ -1,0 +1,45 @@
+<!--
+=============================================================================
+ ASDD — Cursor rules shim
+=============================================================================
+ Copy this file to `.cursor/rules/asdd.md` (or `.cursorrules` at the root of
+ the repo, depending on which convention your Cursor version prefers).
+ Do NOT put project code conventions here — those live in `AGENTS.md`.
+ This file is a thin pointer so Cursor loads ASDD and AGENTS.md at start.
+=============================================================================
+-->
+
+# Cursor rules — ASDD workflow
+
+**Read `AGENTS.md` at the repo root first.** It is the canonical source of
+code conventions for this repository.
+
+## ASDD workflow
+
+This repo uses **ASDD** (Agentic Spec-Driven Development) from `asdd/ai-workflow/`.
+
+- Read `asdd/ai-workflow/ASDD.md` for the master flow (8 phases, human gates,
+  self-verification loop).
+- For each phase, load `asdd/ai-workflow/skills/<name>.md` (base) **and** the
+  profile overlay `asdd/ai-workflow/skills/<name>.<profile>.md`, where
+  `<profile>` is `fe` or `be` and is declared in `AGENTS.md` frontmatter
+  (`asdd_profile:`) or in `asdd/config.yml`.
+- Apply the self-verification loop from
+  `asdd/ai-workflow/prompts/loop-self-verify.md` on every artifact.
+- Apply the self-verification loop from
+  `asdd/ai-workflow/prompts/loop-self-verify.md` on every artifact.
+
+## Guardrails
+
+- Never run build / test / migration / `git` commands. List them for the
+  Developer.
+- Never silence warnings or narrow scope. Fix the root cause or escalate.
+- Follow `asdd/ai-workflow/templates/ticket.<profile>.md` exactly for every
+  ticket — four headings, in order, `N/A` for empty sections.
+- Follow the token-efficiency and minimal-comments rules from
+  [`AGENTS.md`](../AGENTS.md) (Rules #6 and #7). No inline comments in
+  generated code except when genuinely necessary; no preambles or closing
+  summaries in responses.
+- **Bootstrap trigger.** If the user says `Start ASDD`, `Iniciar ASDD`,
+  `Run ASDD`, or `asdd init` (case-insensitive), load
+  `asdd/ai-workflow/prompts/bootstrap.md` first and follow it.

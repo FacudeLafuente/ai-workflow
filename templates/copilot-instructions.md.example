@@ -1,0 +1,46 @@
+<!--
+=============================================================================
+ ASDD — GitHub Copilot instructions shim
+=============================================================================
+ Copy this file to `.github/copilot-instructions.md` in your consumer repo.
+ Do NOT put project code conventions here — those live in `AGENTS.md`.
+ This file is a thin pointer so Copilot loads ASDD and AGENTS.md at start.
+=============================================================================
+-->
+
+# Copilot instructions
+
+**Read `AGENTS.md` at the repo root first.** It is the canonical source of
+code conventions for this repository. Every rule about layering, auth, error
+handling, state management, styling, testing, commit format, and PR
+conventions lives there.
+
+## ASDD workflow
+
+This repo uses **ASDD** (Agentic Spec-Driven Development) from `asdd/ai-workflow/`.
+
+- Start by reading `asdd/ai-workflow/ASDD.md` — it lists the 8 phases (Spec →
+  Scan → Plan → Ticket → Build → PR), human gates, and per-phase skills.
+- For each phase, load `asdd/ai-workflow/skills/<name>.md` (neutral base) **and**
+  the profile overlay `asdd/ai-workflow/skills/<name>.<profile>.md`, where
+  `<profile>` is `fe` or `be` and is declared in `AGENTS.md` frontmatter
+  (`asdd_profile:`) or in `asdd/config.yml`.
+- Apply the self-verification loop from
+  `asdd/ai-workflow/prompts/loop-self-verify.md` on every artifact (spec, plan,
+  ticket, code diff, PR description).
+
+## Guardrails
+
+- **Never** run build / test / migration / `git push` / `git commit`
+  commands. Prepare and list the exact commands for the Developer.
+- **Never** silence warnings, delete tests, or narrow scope to make a check
+  pass. Fix the root cause or escalate.
+- Follow the ticket format from `asdd/ai-workflow/templates/ticket.<profile>.md`
+  exactly — four headings, in order, empty section ⇒ `N/A`.
+- Follow the token-efficiency and minimal-comments rules from
+  [`AGENTS.md`](../AGENTS.md) (Rules #6 and #7). No inline comments in
+  generated code except when genuinely necessary; no preambles or closing
+  summaries in responses.
+- **Bootstrap trigger.** If the user says `Start ASDD`, `Iniciar ASDD`,
+  `Run ASDD`, or `asdd init` (case-insensitive), load
+  `asdd/ai-workflow/prompts/bootstrap.md` first and follow it.

@@ -1,0 +1,24 @@
+# CLAUDE.md
+
+**Read [AGENTS.md](./AGENTS.md) before planning, coding, or answering.**
+This file contains no project instructions of its own — it exists only
+because **Claude Code** reads `CLAUDE.md` by default.
+
+`AGENTS.md` is the canonical source of code conventions for this repository.
+The ASDD workflow (Spec → Scan → Plan → Ticket → Build → PR) lives in
+`asdd/ai-workflow/`:
+
+- Read `asdd/ai-workflow/ASDD.md` for the master flow and phase definitions.
+- For each phase load `asdd/ai-workflow/skills/<name>.md` (base) plus the profile
+  overlay `asdd/ai-workflow/skills/<name>.<profile>.md`, where `<profile>` is
+  `fe` or `be` and is read from the `asdd_profile:` frontmatter in
+  `AGENTS.md` (or from `asdd/config.yml`).
+- Apply the self-verification loop from
+  `asdd/ai-workflow/prompts/loop-self-verify.md` on every artifact.
+- Follow the token-efficiency and minimal-comments rules from
+  [`AGENTS.md`](./AGENTS.md) (Rules #6 and #7). No inline comments in
+  generated code except when genuinely necessary; no preambles or closing
+  summaries in responses.
+- **Bootstrap trigger.** If the user says `Start ASDD`, `Iniciar ASDD`,
+  `Run ASDD`, or `asdd init` (case-insensitive), load
+  `asdd/ai-workflow/prompts/bootstrap.md` first and follow it.
