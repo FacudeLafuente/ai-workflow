@@ -19,8 +19,10 @@
 
 > **Read this file first if you are authoring or reviewing an `AGENTS.md`
 > for a repo that uses ASDD.** For a ready-to-copy starting point, use
-> [`templates/AGENTS.md.fe.example`](templates/AGENTS.md.fe.example) or
-> [`templates/AGENTS.md.be.example`](templates/AGENTS.md.be.example).
+> [`templates/AGENTS.md.fe.example`](templates/AGENTS.md.fe.example),
+> [`templates/AGENTS.md.be.example`](templates/AGENTS.md.be.example),
+> or [`templates/AGENTS.md.mixed.example`](templates/AGENTS.md.mixed.example)
+> if the same repo hosts both FE and BE code.
 
 ## Purpose
 
@@ -63,12 +65,15 @@ Every `AGENTS.md` derived from this base follows exactly this shape:
   reliably across every ASDD-compatible repo.
 - Empty section ⇒ write a one-line `N/A — <reason>`. Never silently omit.
 
-The two profile templates (`AGENTS.md.fe.example` /
-`AGENTS.md.be.example`) implement this shape with realistic starting
-content per stack. The BE template uses subsections inside
-`## Code Conventions` (Layering & DTO placement / API conventions / Error
-envelope / Persistence & migrations / Style) to keep the 9 top-level
-sections stable.
+The three profile templates (`AGENTS.md.fe.example` /
+`AGENTS.md.be.example` / `AGENTS.md.mixed.example`) implement this shape
+with realistic starting content per stack. The BE template uses
+subsections inside `## Code Conventions` (Layering & DTO placement / API
+conventions / Error envelope / Persistence & migrations / Style) to keep
+the 9 top-level sections stable. The mixed template splits
+`## Code Conventions` into `### Frontend` and `### Backend` subsections
+and points at the FE / BE templates for the concrete rules — it never
+duplicates them (SSOT).
 
 ## Required frontmatter — ASDD profile & wiring
 
@@ -77,13 +82,26 @@ knows the profile and delivery parameters:
 
 ```yaml
 ---
-asdd_profile: fe          # or "be"
+asdd_profile: fe          # or "be", or "mixed" (FE + BE in the same repo)
 base_branch: development  # branch pr-handoff will target
 ticketing:
   system: azure-devops    # or: github-issues, jira, linear, gitlab
   ticket_id_pattern: "#<NUMBER>"
 ---
 ```
+
+Allowed values for `asdd_profile:`:
+
+- `fe` — Frontend-only repo. All skills load their `.fe` overlays.
+- `be` — Backend-only repo. All skills load their `.be` overlays.
+- `mixed` — Same repo hosts both FE and BE code (monorepo with FE + BE
+  packages, or a monolith with FE + BE intermingled). The effective
+  profile is resolved **per ticket**: each ticket declares
+  `profile: fe` or `profile: be` in its frontmatter, and every skill
+  loads the matching overlay for that ticket. See
+  [`ASDD.md` → Profiles](ASDD.md#profiles) for the resolution rules and
+  the halt behavior when a ticket in a `mixed` repo does not declare a
+  profile.
 
 Precedence for profile resolution: this frontmatter → `asdd/config.yml`
 → autodetection by `repo-viability-scan`. See [`ASDD.md` → Profiles](ASDD.md#profiles).

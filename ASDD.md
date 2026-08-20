@@ -61,12 +61,15 @@
 ## Profiles
 
 ASDD ships with two profiles that share the entire flow and diverge only in
-the domain-specific rubrics and templates:
+the domain-specific rubrics and templates. A third value, `mixed`, is not a
+profile of its own — it declares that the repo hosts both FE and BE code
+and defers the profile choice to each ticket.
 
 | Profile | Typical stacks | Heading #3 of the ticket | Conventions source |
 |---|---|---|---|
 | `fe` — Frontend | Vue / React / Angular / Svelte SPAs; mobile | `Links to Figma` | `AGENTS.md` at repo root |
 | `be` — Backend  | .NET, JVM, Node, Python, Go APIs and services | `Contracts & Specs` | `AGENTS.md` at repo root |
+| `mixed` — FE + BE in the same repo | Monorepo (`apps/web` + `apps/api`), or monolith with FE + BE intermingled (ASP.NET MVC + Razor, Next.js app + API routes, Django + templates, Rails, Laravel) | resolved per ticket (see below) | `AGENTS.md` at repo root, plus optional per-package `AGENTS.md` (closest-wins) |
 
 ### Profile selection (in order of precedence)
 
@@ -74,7 +77,7 @@ the domain-specific rubrics and templates:
 
    ```md
    ---
-   asdd_profile: fe   # or "be"
+   asdd_profile: fe   # or "be", or "mixed"
    ---
    ```
 
@@ -85,8 +88,36 @@ the domain-specific rubrics and templates:
    - `package.json` + one of `vue|react|angular|svelte|@vue/*|next|nuxt|remix|@angular/*` → `fe`.
    - `.csproj`, `.sln`, `pom.xml`, `build.gradle`, `go.mod`, `Cargo.toml`,
      `pyproject.toml`, `Gemfile`, `composer.json` → `be`.
-   - Ambiguous (monorepo, both stacks) → the skill halts and asks the human to
-     pick the profile explicitly.
+   - Both FE and BE indicators detected in the same repo →
+     `mixed` if the user opts in, otherwise the skill halts and asks the
+     human to pick a profile explicitly.
+
+### Effective profile for a `mixed` repo
+
+When `asdd_profile: mixed` is declared, ASDD does **not** load a
+combined ruleset. The effective profile is resolved **per ticket** in
+this order of precedence:
+
+1. **Per-package `AGENTS.md`** — if the ticket's touchpoints all live
+   under one folder that carries its own `AGENTS.md` with
+   `asdd_profile: fe` or `asdd_profile: be`, that profile wins
+   (closest-wins rule).
+2. **`asdd/config.yml` → `packages:`** — same idea, without a physical
+   per-package `AGENTS.md`.
+3. **Ticket frontmatter** — the ticket declares its own profile:
+
+   ```md
+   ---
+   profile: fe   # or "be"
+   ---
+
+   # <TICKET-ID> — <Short imperative title>
+   ...
+   ```
+
+If none of the three resolve to a single profile, the current skill
+**halts** and asks the human to pick `fe` or `be` before continuing. No
+skill runs against a `mixed` repo without a resolved effective profile.
 
 The active profile determines:
 

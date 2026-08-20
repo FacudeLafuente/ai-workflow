@@ -48,21 +48,38 @@ Empty section ⇒ `N/A`. Do not add extra top-level headings. Do not rename.
    never split one slice across two tickets (that means the slice was
    mis-sized — return to Phase 2).
 2. **Fill the four immutable sections** from the profile template, in order.
-3. **ToDo — atomic actions.** Each item must be verifiable from the diff.
+3. **Mixed-repo frontmatter.** If the consumer repo declares
+   `asdd_profile: mixed` in its root `AGENTS.md` (and no per-package
+   `AGENTS.md` or `asdd/config.yml` `packages:` entry covers every
+   touchpoint of this ticket), prepend a YAML frontmatter block declaring
+   the ticket's effective profile before the title heading:
+
+   ```md
+   ---
+   profile: fe
+   ---
+
+   # <TICKET-ID> — <Short imperative title>
+   ```
+
+   Omit this block for repos declared `asdd_profile: fe` or
+   `asdd_profile: be`. See [`../ASDD.md` → Profiles](../ASDD.md#profiles)
+   for the full resolution algorithm.
+4. **ToDo — atomic actions.** Each item must be verifiable from the diff.
    The profile overlay lists the discipline items that must appear whenever
    applicable (auth annotation, response-type metadata, mapping, test class,
    accessibility, telemetry, feature flag).
-4. **AC — copy the normalized Given/When/Then** from the Readiness Report
+5. **AC — copy the normalized Given/When/Then** from the Readiness Report
    for this slice's AC subset. Always include the explicit "Edge cases /
    states covered" line, marking inapplicable states as `N/A — <reason>` —
    never silently omit.
-5. **Heading #3 — profile-specific.**
+6. **Heading #3 — profile-specific.**
    - BE: fill the `Contracts & Specs` section per the profile overlay
      (endpoint table, request/response DTOs, error envelope, persistence,
      integrations, feature flag, NFRs).
    - FE: fill the `Links to Figma` section per the profile overlay (screens,
      component library refs, design system references, state variants).
-6. **Notes & Obvs — repo-specific context.**
+7. **Notes & Obvs — repo-specific context.**
    - Touchpoints (file paths, one per line).
    - Dependencies as `blocked by #<ID>` / `blocks #<ID>`.
    - Governance / risk (auth, data exposure, backward compatibility, breaking
@@ -70,12 +87,15 @@ Empty section ⇒ `N/A`. Do not add extra top-level headings. Do not rename.
    - Out-of-scope (explicit list — otherwise reviewers will assume the slice
      covers it).
    - Manual commands the Dev will run (ASDD forbids the AI from running them).
-7. **Cross-ticket linking.** Every dependency listed in the plan must appear
+8. **Cross-ticket linking.** Every dependency listed in the plan must appear
    as `blocked by #<ID>` / `blocks #<ID>`. If the blocker's ID is not yet
    known, emit tickets in dependency order and back-fill IDs before Phase 4.
-8. **Mode B validation.** For each existing ticket:
+9. **Mode B validation.** For each existing ticket:
    - Confirm the four immutable headings exist, in order, with the exact names
      for the active profile.
+   - In `mixed` repos: confirm the ticket carries the `profile:` frontmatter
+     block (or that a per-package `AGENTS.md` / `config.yml` entry resolves
+     the profile for its touchpoints).
    - Confirm the ticket represents a single slice (matches one row of the plan).
    - If the ticket is oversized (multiple slices), split into PR-sized tickets;
      otherwise only validate and link.

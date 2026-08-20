@@ -27,6 +27,12 @@ downstream phase will trust.
 - Use cases, states, needs.
 - **Non-functional needs** — auth policy / guard, performance, pagination,
   idempotency, concurrency, PII / exposure, feature flag key.
+- **Active profile** — `fe` or `be` (see the profile-resolution algorithm
+  in [`repo-viability-scan.md`](repo-viability-scan.md) Step 1). If the
+  repo declares `asdd_profile: mixed`, the caller MUST provide the
+  ticket's effective profile (either the ticket's `profile:` frontmatter,
+  or an explicit choice from the human) before this skill runs. Without
+  an effective profile, **halt** and ask.
 
 Profile overlays add:
 
@@ -92,6 +98,7 @@ profile overlay's rubric additions.
 # Readiness Report — <feature name>
 
 - **Profile:** fe | be
+- **Mixed-repo effective profile source:** ticket-frontmatter | per-package-AGENTS.md | config.yml | N/A (repo is single-profile)
 - **Mode:** A (raw context) | B (groomed ticket #<ID>)
 - **Verdict:** READY | BLOCKED
 - **Source ticket / thread:** <link>

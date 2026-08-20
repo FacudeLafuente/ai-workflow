@@ -13,15 +13,26 @@
 
 # --- Active profile -----------------------------------------------------------
 #
-# One of: fe (Frontend), be (Backend).
+# One of: fe (Frontend), be (Backend), mixed (FE + BE in the same repo).
+#
+# Use `mixed` when the same repo hosts both FE and BE code — either as a
+# monorepo with separate FE / BE packages, or as a monolith with them
+# intermingled. Under `mixed`, the effective profile is resolved per
+# ticket. See `ai-workflow/ASDD.md` → Profiles for the resolution rules.
+#
 # Omit to let repo-viability-scan autodetect.
 profile: fe
 
 # --- Monorepo per-package profiles -------------------------------------------
 #
-# If the repo is a monorepo, list each package with its own profile. When a
-# feature touches one package, ASDD uses that package's profile. When it spans
-# multiple packages, the agent halts and asks the human which profile to run.
+# Preferred when the repo is a monorepo with physically separated FE / BE
+# packages. Each package declares its own profile; ASDD uses the profile of
+# the package a ticket touches. If a ticket spans multiple packages, the
+# agent halts and asks the human which profile to run.
+#
+# When `profile: mixed` is set above, this list is the fastest way to make
+# the closest-wins rule work without adding a per-package `AGENTS.md` in
+# every folder.
 #
 # packages:
 #   - path: apps/web

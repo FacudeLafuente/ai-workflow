@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Question — how do I use ASDD?
+    url: https://github.com/Alix-Platforms/ai-workflow/blob/main/README.md
+    about: Start with the README, then check ASDD.md and AGENTS.md before opening a question.
+  - name: Security concern
+    url: https://github.com/Alix-Platforms/ai-workflow/blob/main/SECURITY.md
+    about: Do NOT open a public issue. Follow SECURITY.md for private reporting.
+  - name: Internal Slack channel
+    url: https://alix-platforms.slack.com
+    about: For real-time chat, ping the maintainers in the internal Slack channel `#asdd`.

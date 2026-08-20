@@ -1,0 +1,34 @@
+# CODEOWNERS — ASDD / ai-workflow
+#
+# Every path in this repo has an explicit owner who is auto-requested for
+# review on any PR that touches their area. Order matters: the last matching
+# pattern wins.
+#
+# When co-maintainers join, add them per area (space-separated). When the
+# repo moves under an org that supports teams, migrate individual handles to
+# team handles (e.g. `@Alix-Platforms/asdd-maintainers`).
+
+# --- Default fallback ---------------------------------------------------------
+*                                   @FacudeLafuente
+
+# --- Core methodology (SSOT — changes must go through the loop rubric) --------
+/ASDD.md                            @FacudeLafuente
+/AGENTS.md                          @FacudeLafuente
+/README.md                          @FacudeLafuente
+/CHANGELOG.md                       @FacudeLafuente
+/config.example.yml                 @FacudeLafuente
+
+# --- Skills (base + overlays) -------------------------------------------------
+/skills/                            @FacudeLafuente
+
+# --- Templates (base + profile-specific) --------------------------------------
+/templates/                         @FacudeLafuente
+
+# --- Prompts (bootstrap, self-verification loop) ------------------------------
+/prompts/                           @FacudeLafuente
+
+# --- Repo governance & CI -----------------------------------------------------
+/.github/                           @FacudeLafuente
+/LICENSE                            @FacudeLafuente
+/SECURITY.md                        @FacudeLafuente
+/CONTRIBUTING.md                    @FacudeLafuente

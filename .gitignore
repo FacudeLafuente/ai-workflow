@@ -1,0 +1,33 @@
+# --- OS / editor noise --------------------------------------------------------
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.swp
+*.swo
+*~
+
+# --- Editor / IDE local settings ---------------------------------------------
+.vscode/
+.idea/
+*.iml
+.history/
+
+# --- Node (in case a future CI or tooling ends up here) ----------------------
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# --- Python (idem) -----------------------------------------------------------
+__pycache__/
+*.pyc
+.venv/
+.env
+.env.local
+
+# --- Local scratch -----------------------------------------------------------
+scratch/
+tmp/
+.tmp/
+*.local

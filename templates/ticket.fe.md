@@ -18,6 +18,14 @@
  - Repo conventions: honor the rules declared in the consumer repo's AGENTS.md
                    (module layout, state management, HTTP client abstraction,
                    auth guards, styling / design tokens, testing harness).
+ - Mixed repos:    if the consumer repo declares `asdd_profile: mixed` in its
+                   root AGENTS.md, this ticket MUST carry a YAML frontmatter
+                   block declaring `profile: fe` before the title heading:
+                     ---
+                     profile: fe
+                     ---
+                   See `asdd/ai-workflow/ASDD.md` → Profiles for the resolution
+                   rules. Ignore this line if the repo is `asdd_profile: fe`.
 
  The four headings for the FE profile are:
    ## ToDo

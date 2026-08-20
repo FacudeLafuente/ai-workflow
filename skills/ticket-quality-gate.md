@@ -37,22 +37,30 @@ For each ticket, run the checklist below and produce a Governance Report row.
    - FE: `ToDo`, `AC`, `Links to Figma`, `Notes & Obvs`.
    - BE: `ToDo`, `AC`, `Contracts & Specs`, `Notes & Obvs`.
    Reject on any deviation.
-2. **Granularity.** The ticket represents exactly one slice from the plan. If
+2. **Mixed-repo profile declared.** If the consumer repo declares
+   `asdd_profile: mixed` in its root `AGENTS.md`, confirm the ticket's
+   effective profile is resolvable — either the ticket carries a YAML
+   frontmatter block declaring `profile: fe` (or `be`) before the title,
+   or every touchpoint of the ticket falls under a folder covered by a
+   per-package `AGENTS.md` or a `asdd/config.yml` `packages:` entry.
+   Reject if the effective profile cannot be resolved. Skip this check
+   for repos declared `asdd_profile: fe` or `asdd_profile: be`.
+3. **Granularity.** The ticket represents exactly one slice from the plan. If
    the diff would touch two unrelated behaviors, reject → back to Phase 3
    (split).
-3. **PR-sized.** The described work fits a single focused PR (see the Phase 2
+4. **PR-sized.** The described work fits a single focused PR (see the Phase 2
    sizing rules). Reject on obvious over-scope.
-4. **Parallelizable.** Dependencies are explicit as `blocked by #<ID>` /
+5. **Parallelizable.** Dependencies are explicit as `blocked by #<ID>` /
    `blocks #<ID>`. Reject on hidden dependencies.
-5. **Governable.** One stage of work — no "and then also do X for the next
+6. **Governable.** One stage of work — no "and then also do X for the next
    feature" trailers.
-6. **Traceable.** Every AC line traces to a Business/Product criterion from
+7. **Traceable.** Every AC line traces to a Business/Product criterion from
    the Readiness Report. Reject on invented ACs.
-7. **Repo conventions honored** (per profile overlay).
-8. **Self-contained.** An implementer can build the slice from this ticket
+8. **Repo conventions honored** (per profile overlay).
+9. **Self-contained.** An implementer can build the slice from this ticket
    alone, without opening chat history, meeting notes, or a design doc.
-9. **Profile-specific landmines checked** (per overlay).
-10. **Emit the Governance Report** (base template below) and hand it to the
+10. **Profile-specific landmines checked** (per overlay).
+11. **Emit the Governance Report** (base template below) and hand it to the
     human reviewer. Approval / rejection is a **human decision** — the skill
     only surfaces evidence.
 

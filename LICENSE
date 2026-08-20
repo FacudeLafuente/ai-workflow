@@ -1,0 +1,35 @@
+Copyright (c) 2026 AlixPartners, LLP. All rights reserved.
+
+This repository and its contents (the "Software") are the proprietary and
+confidential property of AlixPartners, LLP. The Software is licensed for
+internal use by AlixPartners personnel and its authorized affiliates only.
+
+The Software MAY be:
+
+  - Used, copied, and adapted inside AlixPartners projects and repositories.
+  - Referenced, cloned, or vendored into AlixPartners-controlled tooling
+    (including project-level `asdd/ai-workflow/` clones as described in the
+    project README).
+  - Modified for internal use, provided that upstream changes flow back to
+    this repository via pull request when they are of general interest to
+    other teams (see CONTRIBUTING.md).
+
+The Software MAY NOT be:
+
+  - Distributed, published, redistributed, or made available to any third
+    party outside AlixPartners and its authorized affiliates without prior
+    written consent from AlixPartners.
+  - Used to provide services to any third party outside of an AlixPartners
+    engagement without prior written consent from AlixPartners.
+  - Sublicensed, sold, or otherwise transferred in whole or in part.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING
+FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+DEALINGS IN THE SOFTWARE.
+
+For questions about licensing, permitted use, or third-party distribution,
+contact the maintainers listed in `.github/CODEOWNERS`.

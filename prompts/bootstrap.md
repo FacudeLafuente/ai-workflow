@@ -75,7 +75,16 @@ Resolve the active profile in this order of precedence (matches
    - FE: `package.json` + `vue|react|angular|svelte|@vue/*|next|nuxt|remix|@angular/*|astro`, or React Native / Expo / Ionic.
    - BE: `.csproj`, `.sln`, `pom.xml`, `build.gradle`, `go.mod`,
      `Cargo.toml`, `pyproject.toml`, `Gemfile`, `composer.json`.
-   - Ambiguous → mark **AMBER — ask the human**.
+   - **Both FE and BE indicators present in the same repo** → mark
+     **AMBER — recommend `mixed`** and point at
+     [`../README.md` → Mixed repos](../README.md#projects-with-fe--be-in-the-same-repo).
+   - Ambiguous (neither, or the user disagrees with the recommendation)
+     → mark **AMBER — ask the human**.
+
+When the resolved profile is `mixed`, remind the user in the report that
+each ticket must resolve to `fe` or `be` per
+[`../ASDD.md` → Profiles](../ASDD.md#profiles) (via per-package
+`AGENTS.md`, `asdd/config.yml` `packages:`, or ticket frontmatter).
 
 ### 4. Optional — connection-layer shims
 
@@ -113,7 +122,7 @@ values):
 
 - **Project root:** `<absolute path>`
 - **Clone location:** `<absolute path to asdd/ai-workflow>`
-- **Detected profile:** fe | be | ambiguous
+- **Detected profile:** fe | be | mixed | ambiguous
 - **Detected source:** frontmatter | config.yml | autodetect | none
 
 ## Required
@@ -124,7 +133,7 @@ values):
 | `AGENTS.md` at project root         | ✅ present / ❌ missing         |
 | `AGENTS.md` frontmatter with profile| ✅ ok / ⚠️ needs merge / ❌ missing |
 | `.gitignore` contains `asdd/`       | ✅ present / ❌ missing         |
-| Profile resolvable                  | ✅ (fe/be) / ⚠️ ambiguous       |
+| Profile resolvable                  | ✅ (fe/be/mixed) / ⚠️ ambiguous |
 
 ## Optional
 
@@ -156,7 +165,11 @@ echo "asdd/" >> .gitignore
 git add .gitignore
 git commit -m "chore: ignore local ASDD workspace"
 
-# Example — only include if AGENTS.md is missing:
+# Example — only include if AGENTS.md is missing.
+# Pick ONE template based on what the repo hosts:
+#   • fe    → frontend-only repo
+#   • be    → backend-only repo
+#   • mixed → same repo hosts BOTH FE and BE code (monorepo or monolith)
 [ -e ./AGENTS.md ] \
   && cp asdd/ai-workflow/templates/AGENTS.md.<profile>.example ./AGENTS.md.new \
   || cp asdd/ai-workflow/templates/AGENTS.md.<profile>.example ./AGENTS.md

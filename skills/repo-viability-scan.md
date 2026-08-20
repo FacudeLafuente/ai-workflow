@@ -37,8 +37,28 @@ non-existent routes, or unmapped DTOs are only visible after the scan.
       - `package.json` + `vue|react|angular|svelte|@vue/*|next|nuxt|remix|@angular/*|astro` → `fe`.
       - `.csproj`, `.sln`, `pom.xml`, `build.gradle`, `go.mod`, `Cargo.toml`,
         `pyproject.toml`, `Gemfile`, `composer.json` → `be`.
-      - Ambiguous (monorepo, both stacks, none of the above) → **halt** and
+      - **Both FE and BE indicators present in the same repo** → recommend
+        `mixed` in the report and ask the human to confirm before continuing
+        (do not silently pick one side).
+      - Neither, or the human rejects the recommendation → **halt** and
         ask the human to declare the profile explicitly.
+
+   **If the resolved value is `mixed`**, this repo hosts both FE and BE
+   code. `mixed` is not a profile of its own — resolve the **effective
+   profile for the current ticket** in this order (per
+   [`../ASDD.md` → Profiles](../ASDD.md#profiles)):
+   1. Per-package `AGENTS.md` (closest-wins). If every touchpoint of the
+      ticket falls under one folder that carries its own `AGENTS.md`
+      with `asdd_profile: fe` or `asdd_profile: be`, use that profile.
+   2. `asdd/config.yml` → `packages:` list — same idea without a physical
+      per-package `AGENTS.md`.
+   3. Ticket frontmatter `profile: fe` (or `be`) declared at the top of
+      the ticket's Markdown.
+
+   If none of the three resolves to a single profile (e.g. the ticket
+   spans FE + BE touchpoints and declares no frontmatter), **halt** and
+   ask the human to pick one. Never run the overlay for a `mixed` repo
+   without a resolved effective profile.
 2. **Load the profile overlay** and continue with its Steps.
 3. **Detect existing agent tooling.** Before mapping touchpoints, scan the
    consumer repo for pre-existing agent tooling that could conflict with,

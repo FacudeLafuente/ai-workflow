@@ -127,6 +127,17 @@ agent tool reads by convention.
         └── ...
 ```
 
+The frontmatter of the root `AGENTS.md` declares one of three profiles:
+
+- `asdd_profile: fe` — frontend-only repo (default single-stack shape).
+- `asdd_profile: be` — backend-only repo.
+- `asdd_profile: mixed` — same repo hosts both FE and BE code. In this
+  case the layout typically grows a per-package `AGENTS.md` (closest-wins
+  rule), or the ticket declares its own `profile:`. See
+  [Projects with FE + BE in the same repo](#projects-with-fe--be-in-the-same-repo)
+  for the two supported shapes (monorepo with separate packages, or
+  monolith with FE and BE intermingled).
+
 - **`asdd/`** is a plain folder created by hand. It has no `.git/` of its own.
   Its only purpose is to isolate the ai-workflow clone from your project's
   `git init` so both repos keep independent histories.
@@ -144,7 +155,10 @@ agent tool reads by convention.
 
 - **`AGENTS.md`** at the project root: **always required**. It is the anchor
   that declares the ASDD profile (via frontmatter) and holds the project's
-  code conventions.
+  code conventions. Three templates cover all shapes: `fe.example` for
+  frontend-only repos, `be.example` for backend-only repos,
+  `mixed.example` for repos that host both (see
+  [Projects with FE + BE in the same repo](#projects-with-fe--be-in-the-same-repo)).
 - **`.gitignore` entry for `asdd/`**: **always required**, otherwise the
   buffer pollutes your project's git.
 - **Agent-specific shims** (`CLAUDE.md`, `.github/copilot-instructions.md`,
@@ -176,7 +190,7 @@ Run all commands from the root of your project.
 ```bash
 mkdir asdd
 cd asdd
-git clone https://github.com/<org>/ai-workflow.git
+git clone https://github.com/Alix-Platforms/ai-workflow.git
 cd ..
 ```
 
@@ -211,11 +225,16 @@ the merge workflow.
 [ -e ./AGENTS.md ] \
   && cp asdd/ai-workflow/templates/AGENTS.md.be.example ./AGENTS.md.new \
   || cp asdd/ai-workflow/templates/AGENTS.md.be.example ./AGENTS.md
+
+# Same repo hosts BOTH FE and BE (monorepo or monolith):
+[ -e ./AGENTS.md ] \
+  && cp asdd/ai-workflow/templates/AGENTS.md.mixed.example ./AGENTS.md.new \
+  || cp asdd/ai-workflow/templates/AGENTS.md.mixed.example ./AGENTS.md
 ```
 
 The profile is declared in the ASDD frontmatter at the top of `AGENTS.md`
-(`asdd_profile: fe` or `asdd_profile: be`). ASDD resolves the profile in
-this order of precedence:
+(`asdd_profile: fe`, `asdd_profile: be`, or `asdd_profile: mixed`).
+ASDD resolves the profile in this order of precedence:
 
 1. **Frontmatter in `AGENTS.md`** (recommended for single-stack repos).
 2. **`asdd/config.yml`** (recommended for monorepos with per-package
@@ -223,6 +242,73 @@ this order of precedence:
 3. **Autodetection** by `repo-viability-scan` (fallback). Detects FE from
    `package.json` + `vue|react|angular|svelte`; detects BE from `.csproj`,
    `pom.xml`, `go.mod`, `Cargo.toml`, `pyproject.toml`, `build.gradle`.
+   Both FE and BE indicators in the same repo → recommends `mixed` and
+   asks the user to confirm.
+
+For `mixed` repos, see [Projects with FE + BE in the same
+repo](#projects-with-fe--be-in-the-same-repo) below.
+
+##### Projects with FE + BE in the same repo
+
+`asdd_profile: mixed` covers two scenarios, both handled by the same
+template:
+
+1. **Monorepo with physically separated FE and BE packages**
+   (e.g. `apps/web` + `apps/api`, `packages/ui` + `packages/server`).
+2. **Monolith with FE and BE intermingled in the same package**
+   (e.g. ASP.NET MVC + Razor + JS, Next.js app + API routes,
+   Django + templates, Rails, Laravel, Blazor).
+
+Under `mixed`, ASDD does **not** load a combined ruleset. Every ticket
+resolves to a single effective profile (`fe` or `be`) via one of the
+mechanisms below, in order of precedence:
+
+1. **Per-package `AGENTS.md` (closest-wins).** Best fit for scenario 1.
+   Add an `AGENTS.md` inside each package with its own `asdd_profile:`.
+   The base `mixed` `AGENTS.md` at the root stays lean; the packages
+   carry the FE / BE conventions.
+
+   ```text
+   <your-project>/
+   ├── AGENTS.md                ← asdd_profile: mixed
+   ├── apps/
+   │   ├── web/
+   │   │   └── AGENTS.md        ← asdd_profile: fe
+   │   └── api/
+   │       └── AGENTS.md        ← asdd_profile: be
+   └── asdd/ai-workflow/
+   ```
+
+2. **`asdd/config.yml` → `packages:`.** Same idea as (1) but without
+   adding a per-package `AGENTS.md`. See
+   [`config.example.yml`](config.example.yml).
+
+   ```yaml
+   profile: mixed
+   packages:
+     - path: apps/web
+       profile: fe
+     - path: apps/api
+       profile: be
+   ```
+
+3. **Per-ticket frontmatter.** Required for scenario 2 (monolith) and
+   valid for scenario 1 as a fallback. Each ticket declares its profile
+   in a YAML frontmatter block before the title heading:
+
+   ```md
+   ---
+   profile: fe
+   ---
+
+   # <TICKET-ID> — <Short imperative title>
+   ...
+   ```
+
+If none of the three resolves to a single profile, the running skill
+halts and asks the human to pick one before continuing. This is the same
+guardrail `repo-viability-scan` applies to ambiguous single-profile
+repos. See [`ASDD.md` → Profiles](ASDD.md#profiles) for the full spec.
 
 #### 4. Wire the shim(s) for the agent(s) you use
 
@@ -482,6 +568,7 @@ asdd/                                   ← manual buffer, ignored by your proje
     ├── templates/
     │   ├── AGENTS.md.fe.example           ← Frontend AGENTS.md template
     │   ├── AGENTS.md.be.example           ← Backend AGENTS.md template
+    │   ├── AGENTS.md.mixed.example        ← FE + BE in the same repo (monorepo / monolith)
     │   ├── CLAUDE.md.example              ← Claude Code root shim
     │   ├── copilot-instructions.md.example ← GitHub Copilot shim (→ .github/)
     │   ├── cursor-rules.md.example        ← Cursor rules shim (→ .cursor/rules/)

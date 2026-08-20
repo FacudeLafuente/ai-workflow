@@ -1,0 +1,29 @@
+# EditorConfig — https://editorconfig.org
+#
+# Consistent whitespace across the many editors, OSes, and agents that will
+# touch this repo. Markdown is the primary content type; YAML is used for
+# frontmatter and config; shell snippets appear in README examples.
+
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+
+[*.md]
+# Markdown uses trailing whitespace for hard line breaks; leave it alone.
+trim_trailing_whitespace = false
+max_line_length = 100
+
+[*.{yml,yaml}]
+indent_size = 2
+
+[*.sh]
+indent_size = 2
+
+[Makefile]
+indent_style = tab

@@ -1,0 +1,278 @@
+<!--
+=============================================================================
+ ASDD — Mixed (FE + BE) AGENTS.md template
+=============================================================================
+ This template is the third profile-specific starting point for the
+ consumer's `AGENTS.md`, alongside `AGENTS.md.fe.example` and
+ `AGENTS.md.be.example`. Use it when the same repo hosts BOTH frontend and
+ backend code, in either of these shapes:
+
+   1. Monorepo with physically separated FE and BE packages
+      (e.g. `apps/web` + `apps/api`, `packages/ui` + `packages/server`).
+   2. Monolith with FE and BE intermingled in the same package
+      (e.g. ASP.NET MVC + Razor + JS, Next.js app + API routes,
+      Django + templates, Rails, Laravel, Blazor).
+
+ It is derived from and kept in sync with the canonical base at
+ `asdd/ai-workflow/AGENTS.md`, which defines the 9-section canonical
+ structure, the shared rules every ASDD-compatible AGENTS.md must enforce,
+ and the required ASDD frontmatter.
+
+ SSOT rule: this template does NOT duplicate the concrete FE / BE
+ conventions from `AGENTS.md.fe.example` / `AGENTS.md.be.example`. Instead
+ it splits `## Code Conventions` into `### Frontend` and `### Backend`
+ subsections and points the reader at the two sibling templates for the
+ rich starting content. Copy the pieces that apply from each into the
+ matching subsection here.
+
+ Sections marked with `<PLACEHOLDER>` MUST be filled in.
+ Sections with concrete examples (paths, package names, versions) SHOULD be
+ adapted to your repo — keep the same structure and level of detail.
+=============================================================================
+-->
+---
+# ASDD frontmatter — read by `asdd/ai-workflow/` skills.
+# Do NOT remove; edit to match your setup.
+
+asdd_profile: mixed
+
+# Base branch used by pr-handoff (fallback: development).
+base_branch: development
+
+# Ticketing system used by ticket-author and pr-handoff.
+ticketing:
+  system: azure-devops       # or: github-issues, jira, linear, gitlab
+  ticket_id_pattern: "#<NUMBER>"   # examples: "#1234", "PROJ-1234", "GH-1234"
+---
+
+# AGENTS.md
+
+Shared baseline instructions for AI coding agents working on the
+**<Project name>** repository. Keep this file lean.
+
+This repo hosts **both FE and BE code**. ASDD does not run against a
+combined ruleset; every ticket resolves to a single effective profile
+(`fe` or `be`) via one of the mechanisms listed in
+[`asdd/ai-workflow/ASDD.md` → Profiles](../asdd/ai-workflow/ASDD.md#profiles):
+
+1. **Per-package `AGENTS.md`** (recommended when packages are physically
+   separated — e.g. `apps/web/AGENTS.md` with `asdd_profile: fe` and
+   `apps/api/AGENTS.md` with `asdd_profile: be`). Closest-wins.
+2. **`asdd/config.yml` → `packages:`** — same idea without adding a
+   per-package `AGENTS.md`.
+3. **Ticket frontmatter** — the ticket declares `profile: fe` or
+   `profile: be`. Required for repos that cannot use options 1 or 2
+   (monoliths where FE and BE are intermingled in the same folder).
+
+If none of the three resolves to a single profile, the running skill
+halts and asks the human to pick one before continuing.
+
+## Project Overview
+
+<Describe what this project is in 3–5 lines: the main product, the FE and
+BE stacks it hosts, the primary users, the runtime target, and the top 3
+tools anyone touching the codebase must be aware of.>
+
+Example baseline (edit to match your project):
+
+> `<Project name>` is a **<FE stack>** frontend and a **<BE stack>** backend
+> hosted in the same repo. FE lives in `<apps/web | src/client | Views/>`,
+> BE lives in `<apps/api | src/server | Controllers/>`. Both authenticate
+> against `<Azure AD | Auth0 | other>` and share `<common types | protobuf
+> contracts | OpenAPI schema>` via `<packages/shared | Contracts/>`.
+
+## Project Layout — Non-Obvious Bits
+
+<Explain the parts of the codebase that are impossible to guess by browsing
+the tree. Focus on:
+
+- Where FE code lives vs where BE code lives (top-level split).
+- The **shared boundary** — types, contracts, envelopes, protobuf, OpenAPI.
+- Whether each side owns its own build / test / lint or the repo has a
+  single toolchain (Turborepo, Nx, pnpm workspaces, Cargo workspaces,
+  dotnet solution with a Node subproject, etc.).
+- Aliases / path mappings that cross the FE / BE boundary.
+- Any root-level bootstrap file that wires both sides together.>
+
+- **FE package:** `<path>` — <one-line description>.
+- **BE package:** `<path>` — <one-line description>.
+- **Shared package(s):** `<path>` — <one-line description>.
+- **Contract source of truth:** `<OpenAPI file | protobuf dir | shared
+  TypeScript types>`.
+- **Cross-boundary rule:** BE never imports from FE; FE consumes BE
+  strictly through the declared HTTP client / RPC layer (see subsections
+  below).
+
+## Domain Core
+
+Three concepts that cannot be inferred from the code alone (edit to match
+your domain):
+
+- **<Term>** — <one-line definition>.
+- **<Term>** — <one-line definition>.
+- **<Term>** — <one-line definition>.
+
+## Tooling
+
+- **Context7 MCP** — use it for any library, framework, SDK, or API
+  documentation, setup, configuration, or CLI usage. Don't wait to be
+  asked. If Context7 MCP is not available in the current session, tell
+  the user before falling back to other sources.
+- **<Other MCPs your team uses>** — one line each, with a hint of when
+  the agent should reach for them.
+
+## Basic Project Commands
+
+<List the commands for both sides. If your monorepo has a task runner
+(Turborepo / Nx / pnpm / cargo / dotnet), list the aggregated commands
+first, then the per-package ones.>
+
+```bash
+# Aggregate (run at repo root, if applicable):
+<install>                                  # e.g. pnpm install, npm ci
+<build all>                                # e.g. pnpm -r build, turbo run build
+<test all>                                 # e.g. pnpm -r test, turbo run test
+<lint all>                                 # e.g. pnpm -r lint, turbo run lint
+
+# Frontend only:
+<install>                                  # if FE has its own install step
+<dev>                                      # e.g. npm run dev
+<build>                                    # e.g. npm run build
+<test>                                     # e.g. npm run test
+<lint>                                     # e.g. npm run lint:check
+
+# Backend only:
+<restore>                                  # e.g. dotnet restore, mvn install
+<build>                                    # e.g. dotnet build -c Release
+<test>                                     # e.g. dotnet test
+<migration>                                # only when a schema change is confirmed
+```
+
+Runtime configuration:
+- **FE:** `<config source>` (e.g. `public/config.json`, `.env`).
+- **BE:** `<config source>` (e.g. `appsettings.json`, `.env`).
+
+## Testing
+
+- **FE harness:** <runner + render helper + where tests live>. Do not
+  render bare — use the repo's `renderWithProviders` / equivalent. See
+  the FE conventions below.
+- **BE harness:** <runner + test project layout + integration test
+  strategy>. See the BE conventions below.
+- **Contract tests** (optional): if the repo runs FE ↔ BE contract tests
+  (Pact, generated clients, snapshot tests against OpenAPI), name the
+  suite and the command here.
+
+## Code Conventions
+
+The FE and BE stacks each have their own conventions. The two subsections
+below carry only the rules that apply to this specific repo. For the
+richer, ready-to-adapt baseline (Vue / TanStack Query / Pinia on the FE,
+.NET / EF Core / AutoMapper on the BE), copy from:
+
+- [`asdd/ai-workflow/templates/AGENTS.md.fe.example`](../asdd/ai-workflow/templates/AGENTS.md.fe.example)
+  — the full FE `## Code Conventions` section.
+- [`asdd/ai-workflow/templates/AGENTS.md.be.example`](../asdd/ai-workflow/templates/AGENTS.md.be.example)
+  — the full BE `## Code Conventions` section (with its `Layering & DTO
+  placement / API conventions / Error envelope / Persistence &
+  migrations / Style` subsections).
+
+### Frontend
+
+<Fill in with the rules that actually apply to your FE side. Examples:>
+
+- **Composition style** — <e.g. Composition API only, React function
+  components + hooks, Angular standalone components>.
+- **HTTP layer** — <all HTTP goes through `<useHttpClient / apiClient /
+  fetcher>`; components never call `axios` / `fetch` directly>.
+- **State** — <Pinia / Redux / Zustand / NgRx — as declared here>.
+- **Routing / route metadata** — <feature-flag gate, access-level gate,
+  code-splitting rule>.
+- **Errors** — <typed error classes + global error UX>.
+- **Style / formatter** — <Prettier / ESLint config, print width,
+  quote style>.
+- **Comments:** the agent honors the minimal-comments rule
+  ([`asdd/ai-workflow/AGENTS.md` → Rule #6](../asdd/ai-workflow/AGENTS.md)).
+
+### Backend
+
+<Fill in with the rules that actually apply to your BE side. Examples:>
+
+- **Layering discipline** — <Controller → Service → Repository → ORM>.
+  No DB calls from controllers. No business logic in controllers.
+- **DTO placement** — Web DTOs in `<path>`; Core DTOs in `<path>`.
+  Never leak an entity through the HTTP boundary.
+- **Mapping** — <AutoMapper profile / MapStruct mapper / manual mapper>.
+- **Auth** — every endpoint carries `<[Authorize(Policy = …)] / guard /
+  decorator>` unless it is genuinely public.
+- **API conventions** — <routing style, response type attributes,
+  idempotency policy>.
+- **Error envelope** — <shape + mapping table>. Throw the typed
+  exception; the global handler applies the envelope.
+- **Persistence & migrations** — <DbContext location, migrations flow,
+  schema-change gating>.
+- **Style / analyzer** — <formatter, analyzers, warnings-as-errors
+  policy>.
+- **Comments:** the agent honors the minimal-comments rule
+  ([`asdd/ai-workflow/AGENTS.md` → Rule #6](../asdd/ai-workflow/AGENTS.md)).
+
+### Cross-boundary
+
+- **Contract source of truth:** `<OpenAPI file | protobuf | shared
+  types>`. Both sides consume it; neither hand-writes duplicate types.
+- **Envelope alignment:** the FE error classes (`<...>`) map 1:1 to the
+  BE error envelope statuses (`<...>`). Adding a new BE status ⇒ add the
+  matching FE error class in the same ticket (or split into two coupled
+  tickets with an explicit `blocks` link).
+- **Cross-package imports:** BE ⇢ FE imports are forbidden. FE ⇢ BE
+  runtime imports are forbidden (only shared package imports are
+  allowed).
+
+## Commit & PR Conventions
+
+- **Base branch:** `development` (or per `base_branch` in the frontmatter).
+- **Branch name convention:** `<prefix>/<TICKET-ID>-<short-slug>` off the
+  base branch. Prefix follows the change type (`feature`, `fix`, `chore`,
+  `refactor`, `docs`, `test`, `perf`, `ci`, `build`, `revert`).
+- **Commit format** — Conventional Commits with the ticket ID:
+
+  ```text
+  <type>(<scope>): <lowercase description> #<TICKET-ID>
+  ```
+
+  - **Allowed types:** `feat | fix | docs | style | refactor | test |
+    chore | perf | ci | build | revert`.
+  - Scope names the affected side or package
+    (e.g. `feat(web): …`, `fix(api): …`, `chore(shared): …`).
+  - Message references the ticket ID.
+- **One ticket → one focused PR.** A single PR MAY touch both FE and BE
+  if the ticket's slice is inherently cross-boundary (e.g. adding an
+  endpoint and its consumer in one vertical slice); otherwise split.
+- **PR checks** — <name the CI workflows that must be green>.
+- **No `--force` on shared branches. No `--no-verify`.**
+
+## What NOT to Do
+
+- **Do not** run `<install> / <build> / <test> / <lint> / <migrate> /
+  git *` commands. List them in the delivery summary and let the
+  Developer run them.
+- **Do not** introduce cross-boundary imports (BE importing FE code, or
+  FE importing BE code outside the shared package).
+- **Do not** duplicate types across FE and BE — extend the shared
+  contract instead.
+- **Do not** hand-write a bespoke error shape on either side; both go
+  through the declared envelope.
+- **Do not** add inline comments to generated code except when genuinely
+  necessary, when they carry important non-obvious context, or when the
+  user explicitly asked. Only a **file-header block of at most 3 lines**
+  may be added on the agent's initiative. See
+  [`asdd/ai-workflow/AGENTS.md` → Rule #6](../asdd/ai-workflow/AGENTS.md)
+  for the full rule; do not restate it here.
+- **Do not** silence warnings, delete tests, narrow scope, or bypass
+  auth guards to make a check pass. See
+  [`asdd/ai-workflow/AGENTS.md` → Rule #2](../asdd/ai-workflow/AGENTS.md).
+- **Do not** merge a ticket that lacks a resolved effective profile
+  (see the top of this file and
+  [`asdd/ai-workflow/ASDD.md` → Profiles](../asdd/ai-workflow/ASDD.md#profiles)).
+- **Do not** push directly to the base branch or force-push shared
+  branches. **Do not** commit with `--no-verify`.
